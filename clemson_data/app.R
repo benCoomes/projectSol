@@ -10,6 +10,9 @@ ui <- fluidPage(
                value = 50,
                min = 0,
                step = 10),
+  dateRangeInput("dates",
+                 label = "Enter Date Range",
+                 ),
   
   actionButton("update", 
                label = "Apply changes"),
@@ -56,12 +59,18 @@ server <- function(input, output) {
     df$time <- strptime(df$time, format = "%Y-%m-%d %H:%M:%S")
     df$time <- as.POSIXct(df$time)
     ordereddf <- df[order(df$time),]
+    
+    # remove any newly-incomplete rows
+    df <- df[complete.cases(df), ]
   } 
   
   v <- reactiveValues(active_data = df)
   
   observeEvent(input$update, {
-    v$active_data <- df[1:input$count,]
+    date_range <- as.POSIXct(input$dates)
+    temp_data <- df[(df$time > date_range[1] & df$time < date_range[2]),]
+    temp_data <- temp_data[1:min(input$count, length(temp_data$time)),]
+    v$active_data <- temp_data
   })
   
   output$plot <- renderPlot({
