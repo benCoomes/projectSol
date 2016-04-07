@@ -74,18 +74,24 @@ server <- function(input, output) {
     data <- documents[['rows']]
     df <- data[['doc']]
     
-    # compose vectors into data frame
-    colnames(df) <- c("id", "rev", "flux", "lat", "lng", "URI", "time")
+    #select columns to be used an rename them. (leave our columns xcoor and ycoor)
+    df <- data.frame("id" = df$`_id`, 
+                     "rev" = df$`_rev`, 
+                     "lat" = df$lat, 
+                     "lng" = df$lng,
+                     "flux" = df$flux,
+                     "URI" = df$URI,
+                     "time" = df$timestamp)
+
     
     # remove incomplete rows from the data frame
     # ignore missing URIs for the moment
-    #df <- df[complete.cases(df,]
-    df <- df[complete.cases(df[,1:6]), ]
+    df <- df[complete.cases(df),]
     
     #convert flux values to numbers
     df$flux <- as.numeric(df$flux)
     
-    # remove rows with invalid coordinates from the dataframe, don't know why these have to be seperate
+    # remove rows with invalid coordinates from the dataframe, don't know why these lines have to be seperate
     df <- df[(df$lat >= -90.0), ]
     df <- df[(df$lat <= 90.00), ]
     df <- df[(df$lng >= -180.0), ]
@@ -95,9 +101,8 @@ server <- function(input, output) {
     ucoors <- data.frame(lat=df$lat, lng=df$lng) %>% unique()
     
     #conver time from char vector to POSIXct type 
-    df$time <- strptime(df$time, format = "%Y-%m-%d %H:%M:%S")
+    df$time <- strptime(df$time, format = "%Y-%m-%d %H:%M:%S", tz = "GMT")
     df$time <- as.POSIXct(df$time)
-    ordereddf <- df[order(df$time),]
     
     # remove any newly-incomplete rows
     df <- df[complete.cases(df), ]
@@ -125,7 +130,7 @@ server <- function(input, output) {
     # looks like jon mixed up the latitudes and longitudes
     leaflet() %>% 
       addTiles() %>% 
-      addMarkers(lat = ucoors[["lng"]][1], lng = ucoors[["lat"]][1])
+      addMarkers(lat = ucoors$lat, lng = ucoors$lng)
   )
   
   output$locationSelect <- renderUI({
