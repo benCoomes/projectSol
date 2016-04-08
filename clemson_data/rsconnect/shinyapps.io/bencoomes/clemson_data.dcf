@@ -2,8 +2,8 @@ name: clemson_data
 account: bencoomes
 server: shinyapps.io
 appId: 88073
-bundleId: 411066
+bundleId: 413459
 url: https://bencoomes.shinyapps.io/clemson_data/
-when: 1459866866.48418
+when: 1460090104.56231
 asMultiple: FALSE
 asStatic: FALSE

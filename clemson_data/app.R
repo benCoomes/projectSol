@@ -114,7 +114,9 @@ server <- function(input, output) {
     date_range <- as.POSIXct(input$dates)
     date_range[1] <- date_range[1] + (as.numeric(input$start_hour) * 3600)
     date_range[2] <- date_range[2] + (as.numeric(input$end_hour) * 3600)
-    temp_data <- df[(df$time > date_range[1] & df$time < date_range[2]),]
+    select <- df$URI == input$locations
+    temp_data <- df[select, ]
+    temp_data <- temp_data[(temp_data$time > date_range[1] & temp_data$time < date_range[2]),]
     temp_data <- temp_data[1:min(input$count, length(temp_data$time)),]
     v$active_data <- temp_data
   })
@@ -137,7 +139,7 @@ server <- function(input, output) {
     selectInput("locations", 
                 label = "Sensor", 
                 #choices = 1:length(ucoors$lat))
-                choices = 1:length(v$active_data$time))
+                choices = df$URI %>% unique())
   })
   
 }

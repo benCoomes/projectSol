@@ -31,9 +31,18 @@ rpi2 <- rpi2[!outliers, ]
 rpi2 <- rpi2[order(rpi2$timestamp),]
 
 # seperate and clean data for UID 1
-rpi1 <- df[!select, ]
+select <- df$URI == 1
+rpi1 <- df[select, ]
 rpi1 <- rpi1[c(1, 2, 4, 6, 7, 8, 9)]
 rpi1 <- rpi1[complete.cases(rpi1),]
 rpi1$flux <- as.numeric(rpi1$flux)
 rpi1$timestamp <- as.POSIXct(rpi1$timestamp, format = "%Y-%m-%d %H:%M:%S")
 rpi1 <- rpi1[order(rpi1$timestamp),]
+
+select <- df$URI == 3
+rpi3 <- df[select, ]
+rpi3 <- rpi3[1:7]
+rpi3 <- rpi3[complete.cases(rpi3),]
+rpi3$flux <- as.numeric(rpi3$flux)
+rpi3$timestamp <- as.POSIXct(rpi3$timestamp, format = "%Y-%m-%d %H:%M:%S")
+rpi3 <- rpi3[order(rpi3$timestamp), ]
