@@ -8,15 +8,8 @@ ui <- fluidPage(
   titlePanel("Super Solar Data Dashboard!"),
   
   fluidRow(
-    column(3, wellPanel(
-      numericInput("count", 
-                   label = "Number of data Points",
-                   value = 50,
-                   min = 0)
-    )),
-    
     column(5, wellPanel(
-      dateRangeInput("dates",
+      dateInput("date",
                      label = "Enter Date Range")
     )),
     
@@ -111,21 +104,24 @@ server <- function(input, output) {
   v <- reactiveValues(active_data = df)
   
   observeEvent(input$update, {
-    date_range <- as.POSIXct(input$dates)
-    date_range[1] <- date_range[1] + (as.numeric(input$start_hour) * 3600)
-    date_range[2] <- date_range[2] + (as.numeric(input$end_hour) * 3600)
-    select <- df$URI == input$locations
+    date <- as.POSIXct(input$date)
+    time_range = c()
+    time_range[1] <- date + (as.numeric(input$start_hour) * 3600)
+    time_range[2] <- date + (as.numeric(input$end_hour) * 3600)
+    
+    select <- df$URI %in% input$locations
     temp_data <- df[select, ]
-    temp_data <- temp_data[(temp_data$time > date_range[1] & temp_data$time < date_range[2]),]
-    temp_data <- temp_data[1:min(input$count, length(temp_data$time)),]
+    
+    temp_data <- temp_data[(temp_data$time > time_range[1] & temp_data$time < time_range[2]),]
     v$active_data <- temp_data
   })
   
   output$plot <- renderPlot({
-      ggplot(aes(x = v$active_data$time, y = v$active_data$flux), data = v$active_data) +
-      geom_point() +
-      xlab("Time") +
-      ylab("Flux Value")
+      # ggplot(aes(x = v$active_data$time, y = v$active_data$flux), data = v$active_data) +
+      # geom_point() +
+      # xlab("Time") +
+      # ylab("Flux Value")
+    qplot(x = time, y = flux, data = v$active_data, color = as.factor(URI), geom = "point")
   })
   
   output$mymap <- renderLeaflet(
@@ -136,10 +132,11 @@ server <- function(input, output) {
   )
   
   output$locationSelect <- renderUI({
-    selectInput("locations", 
-                label = "Sensor", 
+    checkboxGroupInput("locations", 
+                label = "Sensors", 
                 #choices = 1:length(ucoors$lat))
-                choices = df$URI %>% unique())
+                choices = df$URI %>% unique(), 
+                selected = df$URI %>% unique())
   })
   
 }
