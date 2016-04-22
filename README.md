@@ -3,6 +3,7 @@
 To Project Sol Members,
 
 Instructions for setting up Mosquito broker:
+
 	1) Get access to VCL or another remote machine (Maybe can use this machine? 158.85.106.197)
 	2) git clone https://github.com/benCoomes/projectSol.git
 	3) cd projectSol
@@ -21,6 +22,7 @@ Instructions for setting up a subscriber are as follows:
 		These scripts may need to be adjusted but the adjustments should be quite simple. This will set up two subscribers that push data to two databases each, for a total of four databases. The cloudantclient.py pushes data to our original database, though much of the data in that is quite bad. The sparkclient.py pushes data to another database which does not contain malformed data and is what I've been using for Spark. You guys can decide what you want to do, but it should be simple changes.
 
 Instructions for Spark:
+
 	1) Get access to VCL or another remote machine (Maybe can use this machine which already has spark? 158.85.106.205)
 	2) git clone https://github.com/benCoomes/projectSol.git
 	3) cd <spark-directory>
