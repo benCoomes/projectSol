@@ -2,6 +2,14 @@
 
 To Project Sol Members,
 
+Instructions for setting up Mosquito broker:
+	1) Get access to VCL or another remote machine (Maybe can use this machine? 158.85.106.197)
+	2) git clone https://github.com/benCoomes/projectSol.git
+	3) cd projectSol
+	4) chmod u+x mosquitto.sh
+	5) ./mosquttio.sh (This should install the broker hopefully)
+	6) mosquitto -p 9999 (I've been using port 9999, but you guys could make it something else as long as you also change the publish/subscribe scripts)
+
 Instructions for setting up a subscriber are as follows:
 
 	1) Get access to VCL or another remote machine (Maybe can use this machine? 158.85.106.197)
@@ -19,3 +27,8 @@ Instructions for Spark:
 	4) bin/spark-submit --master local[4] --jars ../spark-cloudant/cloudant-spark-v1.6.3-125.jar ../projectSol/spark_linear_regression.py 
 	notes:
 		This script currently converts all timestamps to floats starting from 0 and up to the maximum number of seconds in a day. From here, it moves through and creates linear regression models for each 15 minute sliding window. These models can then be used to predict the solar energy for an available time with better accuracy (hopefully one day maybe?). You guys should definitely use weatherunderground's API to incorporate weather features as well. It shouldn't be too difficult, but if things start going wrong, adjusting the stepSize in the training of the model could help. I've been adjusting it by guess and check, but maybe there is a better way to do it?
+
+Best of luck guys.
+
+Cheers,
+Matthew Furlong
