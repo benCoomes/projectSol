@@ -1,0 +1,3 @@
+To submit job, cd into spark folder then run this command:
+
+bin/spark-submit --master local[4] --jars ../spark-cloudant/cloudant-spark-v1.6.3-125.jar ../spark_linear_regression.py
