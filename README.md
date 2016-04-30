@@ -51,11 +51,18 @@ Instructions for the Shiny application
 	4) make a shinyapps.io account
 	5) in an R sesssion: install.packages('rsconnect')
 	6) configure rsconnect, see tutorial here: http://shiny.rstudio.com/articles/shinyapps.html
-	7) deploy the application to shinyapps.io
+	7) change the username and password fields to match the ones for your cloudant database
+	8) deploy the application to shinyapps.io
 
 	I would reccomend using R studio for developing and deploying anything with shiny. Shiny and R Studio are made by the same people, so the integration
 	comes by default and is incredibly helpful. You can view our instance of the application here, if it is still running: 
 	https://bencoomes.shinyapps.io/clemson_data/  There are many helpful videos about using Shiny, I reccomend the 2-hour one on R shiny's website. 
+
+
+Instructions for cloudant database:
+	1) Use bluemix to get a free account
+	2) set up database, starting from within bluemix
+	3) remember databse information, for use in all data consumer applications and the subscriber
 
 
 Best of luck guys.
@@ -63,3 +70,4 @@ Best of luck guys.
 Cheers,
 Matthew Furlong
 Ben Coomes
+Jon Francis
