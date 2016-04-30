@@ -6,9 +6,6 @@ import datetime
 
 # URI == 3
 # this implementation is testing overnight running capabilities
-# the client connects and disconnects for every message that needs to be sent
-# this is probably more effecient for the server
-# it should also prevent unwanted disconnects
 # this version will publish averages
 
 
@@ -50,7 +47,7 @@ client.on_message = on_message
 client.on_publish = on_publish
 client.on_disconnect = on_disconnect
 
-#client.connect("169.55.155.236", 9999, 60) #VCL
+#client.connect(broker IP, broker port, keep alive time)
 client.connect("158.85.106.197", 9999, 3600) #VCL, keep alive for one hour
 
 

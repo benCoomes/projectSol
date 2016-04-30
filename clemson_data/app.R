@@ -3,60 +3,40 @@ library(httr)
 library(jsonlite)
 library(leaflet)
 library(ggplot2)
+library(scales)
 
 ui <- fluidPage(
-  titlePanel("Super Solar Data Dashboard!"),
-  
-  fluidRow(
-    column(5, wellPanel(
-      dateInput("date",
-                     label = "Enter Date Range")
-    )),
-    
-    # dynamic input for sensor locations
-    column(2, wellPanel(
-      uiOutput("locationSelect")
-    ))
+  fluidRow(column(width = 1, tags$img(width = "90%", height = "90%", src = "paw.png")),
+           column(width = 11, titlePanel("Project Sol: Dashboard"))
   ),
   
- 
-  # sliderInput("hours", 
-  #             label = "Hours",
-  #             min = 0,
-  #             max = 24,
-  #             value = c(0, 24)
-  # ),
+  tags$hr(),
   
   fluidRow(
-    column(3, wellPanel(
-      actionButton("update", 
-                   label = "Apply changes")
-      
-    )),
-    
-    column(2, wellPanel(
-      selectInput("start_hour", 
-                  label = "Start Hour",
-                  choices = 0:23)
-    )),
-    
-    column(2, wellPanel(
-      selectInput("end_hour",
-                  label = "End Hour",
-                  choices = 0:23)
-    ))
-  ),
+    column(width = 6, wellPanel(
+      dateRangeInput("dates", label = "Date Range"),
+      sliderInput("hours", label = "Hours", min = 0, max = 24, value = c(0, 24)),
+      uiOutput("locationSelect"),
+      actionButton("update", label = "Apply Changes"),
+      tags$hr(),
+      radioButtons("yscale", label = "Y axis scale", choices = c("Linear", "Logrithmic"), inline = TRUE))
+    ), 
+    column(width = 6, leafletOutput("mymap"))
+  ), 
   
-  plotOutput("plot"),
+  tags$hr(),
   
-  leafletOutput("mymap")
+  fluidRow(
+    plotOutput("plot")
+  )
 )
+
 
 # Pull data outside of server... see what happens
 
 username <- "3af116fb-a68b-41e3-959b-29d1a83399d9-bluemix"
 password <- "70d0f1455b7dd050452faa5d3650f0907bb98cde87f61fcde0cf57dbca8e3d7e"
-#http <- "https://3af116fb-a68b-41e3-959b-29d1a83399d9-bluemix.cloudant.com/clemson_data/_all_docs?limit=1000&include_docs=true&descending=true"
+#http <- "https://3af116fb-a68b-41e3-959b-29d1a83399d9-bluemix.cloudant.com/clemson_data/_all_docs?limit=100&include_docs=true&descending=true"
 http <- "https://3af116fb-a68b-41e3-959b-29d1a83399d9-bluemix.cloudant.com/clemson_data/_all_docs?include_docs=true"
 httpResponse <- GET(http, authenticate(username, password))
 cat(file = stderr(), "Done recieveing data from cloudant\n")
@@ -76,11 +56,11 @@ df <- data.frame("id" = df$`_id`,
 
 
 # remove incomplete rows from the data frame
-# ignore missing URIs for the moment
 df <- df[complete.cases(df),]
 
-#convert flux values to numbers
-df$flux <- as.numeric(df$flux)
+#convert flux from facror to continous
+df$flux <- as.numeric(levels(df$flux))[df$flux]
+
 
   # remove rows with invalid coordinates from the dataframe, don't know why these lines have to be seperate
   df <- df[(df$lat >= -90.0), ]
@@ -91,12 +71,17 @@ df$flux <- as.numeric(df$flux)
   # make a vector with unique coordinates contained in df
   ucoors <- data.frame(lat=df$lat, lng=df$lng) %>% unique()
   
-  #conver time from char vector to POSIXct type 
+  #convert time from char vector to POSIXct type 
   df$time <- strptime(df$time, format = "%Y-%m-%d %H:%M:%S", tz = "GMT")
   df$time <- as.POSIXct(df$time)
   
+  
   # remove any newly-incomplete rows
   df <- df[complete.cases(df), ]
+  
+  #TEMPORARY - remove exreme outliers
+  ubound <- sd(df$flux) * 4 + mean(df$flux)
+  df <- df[df$flux < ubound, ]
 
 
 server <- function(input, output) {
@@ -104,10 +89,10 @@ server <- function(input, output) {
   v <- reactiveValues(active_data = df)
   
   observeEvent(input$update, {
-    date <- as.POSIXct(input$date)
+    dates <- as.POSIXct(input$dates)
     time_range = c()
-    time_range[1] <- date + (as.numeric(input$start_hour) * 3600)
-    time_range[2] <- date + (as.numeric(input$end_hour) * 3600)
+    time_range[1] <- dates[1] + (as.numeric(input$hours[1]) * 3600)
+    time_range[2] <- dates[2] + (as.numeric(input$hours[2] * 3600))
     
     select <- df$URI %in% input$locations
     temp_data <- df[select, ]
@@ -117,15 +102,17 @@ server <- function(input, output) {
   })
   
   output$plot <- renderPlot({
-      # ggplot(aes(x = v$active_data$time, y = v$active_data$flux), data = v$active_data) +
-      # geom_point() +
-      # xlab("Time") +
-      # ylab("Flux Value")
-    qplot(x = time, y = flux, data = v$active_data, color = as.factor(URI), geom = "point")
+    if(input$yscale == 'Logrithmic'){
+      translation <- log2_trans
+    }
+    else{
+      translation <- identity_trans
+    }
+    qplot(x = time, y = flux, data = v$active_data, color = as.factor(URI), geom = "point") +
+      scale_y_continuous(trans = translation())
   })
   
   output$mymap <- renderLeaflet(
-    # looks like jon mixed up the latitudes and longitudes
     leaflet() %>% 
       addTiles() %>% 
       addMarkers(lat = ucoors$lat, lng = ucoors$lng)
@@ -134,9 +121,9 @@ server <- function(input, output) {
   output$locationSelect <- renderUI({
     checkboxGroupInput("locations", 
                 label = "Sensors", 
-                #choices = 1:length(ucoors$lat))
                 choices = df$URI %>% unique(), 
-                selected = df$URI %>% unique())
+                selected = df$URI %>% unique(), 
+                inline = TRUE)
   })
   
 }
